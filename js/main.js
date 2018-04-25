@@ -1,36 +1,33 @@
-function initMap() {
-  var uluru = {lat: 0, lng: 0};
+var currentLocation;
+var map = new google.maps.Map(document.getElementById('map-canvas'), {
+  zoom: 5,
+  center: currentLocation,
+  mapTypeId: google.maps.MapTypeId.HYBRID
+});
+var marker = new google.maps.Marker({
+  position: currentLocation, 
+  map: map,
+  icon: "img/iss-icon-marker.png"
+});
 
-  var map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 3,
-    center: uluru
-  });
-};
+marker.setMap(map);
 
-initMap();
-
-var iss_now_URL = "http://api.open-notify.org/iss-now.json";
-
-function getISSLocation() {
-  fetch(iss_now_URL, {method: "GET"})
-    .then(function(rep){
-        return rep.json();
+function getISSLocation () {
+  fetch("http://api.open-notify.org/iss-now.json", {method: "GET"})
+    .then(function(response){
+      return response.json();
     })
     .then(function(data){
-        var currentLatitude = data.iss_position.latitude;
-        var currentLatitudeAsInteger = parseInt(currentLatitude,10);
-        var currentLongitude = data.iss_position.longitude;
-        var currentLongitudeAsInteger = parseInt(currentLongitude, 10);
-        issLocationNow = {lat: currentLatitudeAsInteger, lng: currentLongitudeAsInteger};
-        return issLocationNow
-        var marker = new google.maps.Marker({
-          position: issLocationNow,
-          map: map,
-          icon: 'img/iss-icon-marker.png',
-        });
+      var currentLatitude = parseInt(data.iss_position.latitude,10);
+      var currentLongitude = parseInt(data.iss_position.longitude, 10);
+      currentLocation = {lat: currentLatitude, lng: currentLongitude};
+      return currentLocation; 
+    })
+    .then(function(){
+      marker.setPosition(currentLocation);
+      map.panTo(currentLocation)
+      setTimeout(getISSLocation,1000);
     })
 }
 
 getISSLocation();
-
-
